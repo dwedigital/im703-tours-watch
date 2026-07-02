@@ -15,6 +15,11 @@ import os
 import re
 import subprocess
 import sys
+from pathlib import Path
+
+# Once an alert has fired, this file stops every later run from re-alerting
+# (the cron keeps firing; runs become no-ops). Delete it to re-arm the watcher.
+STATE_FILE = Path(__file__).resolve().parent / "ALERTED"
 
 URL = "https://www.ironman.com/races/im703-tours/register"
 UA = (
@@ -86,6 +91,10 @@ def suspend_self() -> None:
 
 
 def main() -> int:
+    if STATE_FILE.exists():
+        print("Already alerted (ALERTED file present) — skipping. Delete it to re-arm.")
+        return 0
+
     html = fetch(URL)
 
     if len(html) < 10000 or "cf-browser-verification" in html or "Just a moment" in html:
@@ -103,6 +112,7 @@ def main() -> int:
             f"Register: {URL}\n"
             f"Checkout link found: {link}"
         )
+        STATE_FILE.touch()
         suspend_self()
         return 0
     if not closed_text:
@@ -111,6 +121,7 @@ def main() -> int:
             "⚠️ IRONMAN 70.3 Tours register page changed — 'will open soon' text is gone. "
             f"Check it now: {URL}"
         )
+        STATE_FILE.touch()
         suspend_self()
         return 0
     print("CLOSED — page still says registration will open soon.")
