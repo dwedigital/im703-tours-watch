@@ -27,11 +27,12 @@ UA = (
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
 )
 
-# Closed wordings seen so far:
+# Closed wordings seen so far (matched against tag-stripped text, since the
+# sentence can be split across HTML elements):
 #   2026-07-02: "General Registration ... will open soon."
 #   2026-07-04: "General Registration ... will open on 09 July 2027 at 2:00 PM CEST !"
 #               (sic — CMS says 2027; presumably means 2026)
-CLOSED_MARKER = re.compile(r"General Registration[^<]*will open (soon|on)", re.IGNORECASE)
+CLOSED_MARKER = re.compile(r"General Registration.{0,200}?will open (soon|on)", re.IGNORECASE)
 
 # When Ironman opens registration they add a checkout CTA pointing at the
 # competitor.com/ironman registration platform.
@@ -103,7 +104,8 @@ def main() -> int:
         # Cloudflare challenge page, not real content — don't misread as CHANGED
         raise RuntimeError(f"Fetch likely blocked by Cloudflare (got {len(html)} bytes)")
 
-    closed_text = bool(CLOSED_MARKER.search(html))
+    text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))
+    closed_text = bool(CLOSED_MARKER.search(text))
     cta = OPEN_CTA.search(html)
 
     if cta:
