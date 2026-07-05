@@ -27,9 +27,11 @@ UA = (
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
 )
 
-# As of 2026-07-02 the page says:
-#   "General Registration for the 2027 IRONMAN 70.3 Tours Métropole - Loire Valley will open soon."
-CLOSED_MARKER = re.compile(r"General Registration[^<]*will open soon", re.IGNORECASE)
+# Closed wordings seen so far:
+#   2026-07-02: "General Registration ... will open soon."
+#   2026-07-04: "General Registration ... will open on 09 July 2027 at 2:00 PM CEST !"
+#               (sic — CMS says 2027; presumably means 2026)
+CLOSED_MARKER = re.compile(r"General Registration[^<]*will open (soon|on)", re.IGNORECASE)
 
 # When Ironman opens registration they add a checkout CTA pointing at the
 # competitor.com/ironman registration platform.
